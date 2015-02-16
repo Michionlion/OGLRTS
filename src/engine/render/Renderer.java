@@ -63,7 +63,7 @@ public class Renderer implements Runnable {
         
         initOpenGL();
         
-        
+         
         
         
         //render loop
