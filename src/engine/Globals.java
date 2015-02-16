@@ -12,7 +12,7 @@ import org.lwjgl.util.Rectangle;
 
 public class Globals {
 
-    public static final String JARPATH = Globals.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    public static String JARPATH = Globals.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     
     
     public static final int WIDTH = 1080;
@@ -75,10 +75,11 @@ public class Globals {
         
         if(JARPATH.endsWith(".jar")) {
             System.out.println("adding LWJGL from path: " + new File("natives").getAbsolutePath());
-            System.setProperty("org.lwjgl.librarypath", new File("natives").getAbsolutePath());
+            System.setProperty("org.lwjgl.librarypath", new File("res" + File.separator + "natives").getAbsolutePath());
         } else {
-            System.out.println("adding LWJGL from path: " + new File(new File(new File(JARPATH).getParent()).getParent()).getAbsolutePath() + File.separator + "res" + File.separator + "natives");
-            System.setProperty("org.lwjgl.librarypath", new File(new File(new File(JARPATH).getParent()).getParent()).getAbsolutePath() + File.separator + "res" + File.separator + "natives");
+            JARPATH = new File(new File(new File(JARPATH).getParent()).getParent()).getAbsolutePath();
+            System.out.println("adding LWJGL from path: " + JARPATH + File.separator + "res" + File.separator + "natives");
+            System.setProperty("org.lwjgl.librarypath", JARPATH + File.separator + "res" + File.separator + "natives");
         }
         
         System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");

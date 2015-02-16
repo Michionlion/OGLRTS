@@ -8,8 +8,8 @@ import org.lwjgl.util.vector.Matrix4f;
 
 public class BasicSpriteShader extends ShaderProgram implements SpriteShader {
     
-    private static final String VERTEX_FILE = "src/assets/shaders/sprite.vert";
-    private static final String FRAGMENT_FILE = "src/assets/shaders/sprite.frag";
+    private static final String VERTEX_FILE = "sprite.vert";
+    private static final String FRAGMENT_FILE = "sprite.frag";
     
     private int location_transformationMatrix;
 

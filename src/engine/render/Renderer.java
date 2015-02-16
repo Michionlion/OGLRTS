@@ -17,6 +17,7 @@ import java.awt.geom.GeneralPath;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -67,15 +68,28 @@ public class Renderer implements Runnable {
         initOpenGL();
 
         
+        String fileName = JOptionPane.showInputDialog("filename of sprite? (omit ending, must be .png)", "debug");
+        int sx = Integer.parseInt(JOptionPane.showInputDialog("Width of Sprite? (in pixels of original image)", "64"));
+        int sy = Integer.parseInt(JOptionPane.showInputDialog("Height of Sprite? (in pixels of original image)", "64"));
+        Globals.add(new TestMover(Loader.getTexture(fileName), vec2(400,400), vec2(sx,sy)));
         
-        
-        Globals.add(new TestMover(vec2(300,300), 0));
+        JOptionPane.showMessageDialog(null, "Use WASD to move sprite, and QE to rotate!");
         //render loop
         while (!Display.isCloseRequested()) {
             now = Globals.getTime();
+            
             if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
                 break;
             }
+            if (Keyboard.isKeyDown(Keyboard.KEY_1)) {
+                aaOn = true;
+            }
+            if (Keyboard.isKeyDown(Keyboard.KEY_2)) {
+                aaOn = false;
+            }
+            
+            
+            
             if (interpolate) {
                 interpolation = Math.min(1.0f, (float) ((now - Globals.TICKER.lastTickTime) / (TimeUnit.SECONDS.toMillis(1) / Globals.TICKER.targetTPS)));
             } else {
@@ -112,7 +126,8 @@ public class Renderer implements Runnable {
                 GL20.glEnableVertexAttribArray(0);
                 GL20.glEnableVertexAttribArray(1);
                 GL13.glActiveTexture(GL13.GL_TEXTURE0);
-
+                
+                screenShader.setAA(aaOn);
                 screenShader.loadTransformationMatrix(Util.createSpriteTransformationMatrix(0, 0, 0, Globals.WIDTH, Globals.HEIGHT, 0));
 
                 GL11.glBindTexture(GL11.GL_TEXTURE_2D, Loader.getRenderTextureID());

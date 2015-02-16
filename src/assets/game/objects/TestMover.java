@@ -4,11 +4,12 @@ import assets.Loader;
 import assets.sprites.MovingSprite;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
+import org.newdawn.slick.opengl.Texture;
 
 public class TestMover extends MovingSprite {
 
-    public TestMover(Vector2f pos, float rotation) {
-        super(Loader.getTexture("debug"), pos, rotation, new Vector2f(0,0), new Vector2f(64, 64), 1);
+    public TestMover(Texture tex, Vector2f pos, Vector2f size) {
+        super(tex, pos, 0, new Vector2f(0,0), size, 1);
     }
 
     @Override

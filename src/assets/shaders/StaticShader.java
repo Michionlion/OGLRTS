@@ -4,8 +4,8 @@ import org.lwjgl.util.vector.Matrix4f;
 
 public class StaticShader extends ShaderProgram {
     
-    private static final String VERTEX_FILE = "src/assets/shaders/vertexShader.vert";
-    private static final String FRAGMENT_FILE = "src/assets/shaders/fragmentShader.frag";
+    private static final String VERTEX_FILE = "vertexShader.vert";
+    private static final String FRAGMENT_FILE = "fragmentShader.frag";
     
     private int location_transformationMatrix;
     private int location_projectionMatrix;
