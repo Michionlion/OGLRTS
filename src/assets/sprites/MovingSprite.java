@@ -1,10 +1,11 @@
 package assets.sprites;
 
+import engine.interfaces.Interpolatable;
 import engine.interfaces.Tickable;
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.opengl.Texture;
 
-public abstract class MovingSprite extends Sprite implements Tickable {
+public abstract class MovingSprite extends Sprite implements Tickable, Interpolatable {
 
     protected Vector2f delta;
 
@@ -22,10 +23,12 @@ public abstract class MovingSprite extends Sprite implements Tickable {
         System.out.println(s);
     }
 
+    @Override
     public float getDeltaX() {
         return delta.x;
     }
 
+    @Override
     public float getDeltaY() {
         return delta.y;
     }

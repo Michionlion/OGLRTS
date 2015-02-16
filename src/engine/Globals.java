@@ -12,13 +12,16 @@ import org.lwjgl.util.Rectangle;
 
 public class Globals {
 
+    public static final String JARPATH = Globals.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    
+    
     public static final int WIDTH = 1080;
     public static final int HEIGHT = 720;
     
-    public static final int FPS_CAP = 240;
+    public static final int FPS_CAP = 120;
 
-    public static Ticker TICKER = new Ticker(30);
-    public static Renderer RENDERER = new Renderer(true);
+    public static Ticker TICKER;
+    public static Renderer RENDERER;
     
     
     public static CopyOnWriteArrayList<GameObject> gameObjects;
@@ -54,16 +57,12 @@ public class Globals {
         return System.nanoTime() / 1_000_000d;
     }
     
-    protected static void initArrays() {
-        gameObjects = new CopyOnWriteArrayList<>();
-        renderObjects = new CopyOnWriteArrayList<>();
-    }
-    
-    protected static void startGame() {
+    private static void startGame() {
         Thread renderThread = new Thread(RENDERER, "renderThread");
         Thread tickThread = new Thread(TICKER, "tickThread");
         
-        initArrays();
+        gameObjects = new CopyOnWriteArrayList<>();
+        renderObjects = new CopyOnWriteArrayList<>();
         
         
         renderThread.start();
@@ -78,10 +77,19 @@ public class Globals {
     }
 
     public static void main(String[] args) {
-        System.setProperty("org.lwjgl.librarypath", new File("natives").getAbsolutePath());
-        System.setProperty("org.lwjgl.opengl.Window.undecorated", "true");
         
+        if(JARPATH.endsWith(".jar")) {
+            System.out.println("adding LWJGL from path: " + new File("natives").getAbsolutePath());
+            System.setProperty("org.lwjgl.librarypath", new File("natives").getAbsolutePath());
+        } else {
+            System.out.println("adding LWJGL from path: " + new File(new File(new File(JARPATH).getParent()).getParent()).getAbsolutePath() + File.separator + "res" + File.separator + "natives");
+            System.setProperty("org.lwjgl.librarypath", new File(new File(new File(JARPATH).getParent()).getParent()).getAbsolutePath() + File.separator + "res" + File.separator + "natives");
+        }
         
+        System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
+        
+        RENDERER = new Renderer(true);
+        TICKER = new Ticker(30);
         startGame();
     }
 }

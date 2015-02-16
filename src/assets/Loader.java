@@ -60,10 +60,6 @@ public class Loader {
        //        glTexImage2D(     GL_TEXTURE_2D, 0,      GL_RGBA8,           512,            512, 0,      GL_RGBA,        GL_INT, (java.nio.ByteBuffer) null);
             
             
-            
-            
-            
-            
             return renderTexture;
         } else {
             return renderTexture;

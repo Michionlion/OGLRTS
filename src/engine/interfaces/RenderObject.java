@@ -8,5 +8,4 @@ public interface RenderObject {
     public float getX();
     public float getY();
     public boolean isVisible();
-    public boolean interpolate();
 }

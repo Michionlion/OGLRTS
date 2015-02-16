@@ -1,6 +1,7 @@
 package engine.render;
 
 import assets.Loader;
+import assets.game.objects.TestMover;
 import assets.models.RawModel;
 import assets.shaders.BasicSpriteShader;
 import assets.shaders.ScreenShader;
@@ -24,11 +25,14 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;;
+import org.lwjgl.opengl.GL30;
+;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.opengl.Texture;
+
+
 
 public class Renderer implements Runnable {
 
@@ -44,104 +48,102 @@ public class Renderer implements Runnable {
     Area aaa = null;
     private long renders = 0;
     private boolean aaOn;
-    private boolean isInterpolating = false;
-    
+    protected boolean interpolate = true;
+
     BasicSpriteShader spriteShader;
     ScreenShader screenShader;
-    
+
     public Renderer() {
         aaOn = true;
     }
-    
+
     public Renderer(boolean aa) {
         aaOn = aa;
     }
-    
 
     @Override
     public void run() {
-        
+
         initOpenGL();
+
         
-         
         
         
+        Globals.add(new TestMover(vec2(300,300), 0));
         //render loop
-        spriteShader = new BasicSpriteShader();
-        screenShader = new ScreenShader(aaOn);
-        
         while (!Display.isCloseRequested()) {
             now = Globals.getTime();
             if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
                 break;
             }
-            if (isInterpolating) {
+            if (interpolate) {
                 interpolation = Math.min(1.0f, (float) ((now - Globals.TICKER.lastTickTime) / (TimeUnit.SECONDS.toMillis(1) / Globals.TICKER.targetTPS)));
             } else {
                 interpolation = 1;
             }
+
             clearRender();
             
-            GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO);
-            clearFBO();
-            // --SPRITE RENDER--
-            prepareSpriteRender();
-            for (RenderObject toRender : Globals.renderObjects) {
-                if (toRender.isVisible()) {
-                    if (toRender instanceof Sprite) {
+            //RENDER TO renderTexture USING FBO
+            {
+
+                GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO);
+                clearFBO();
+
+                // --SPRITE RENDER--
+                prepareSpriteRender();
+                for (RenderObject toRender : Globals.renderObjects) {
+                    if (toRender.isVisible() && toRender instanceof Sprite) {
                         renderSprite((Sprite) toRender, spriteShader);
                     }
                 }
-            }
-            
-            
-            
-            endSpriteRender();
-            // --END SPRITE RENDER--
+                endSpriteRender();
+                // --END SPRITE RENDER--
 
-            GL11.glFinish();
-            
-            GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
-            
-            
-            //start and bind quad
-            screenShader.start();
-            GL30.glBindVertexArray(QUAD.getVaoID());
-            GL20.glEnableVertexAttribArray(0);
-            GL20.glEnableVertexAttribArray(1);
-            GL13.glActiveTexture(GL13.GL_TEXTURE0);
-            
-            screenShader.loadTransformationMatrix(Util.createSpriteTransformationMatrix(0, 0, 0, Globals.WIDTH, Globals.HEIGHT, 0));
-            
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, Loader.getRenderTextureID());
-            GL11.glDrawElements(GL11.GL_TRIANGLES, QUAD.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
-            
-            //unbind
-            GL20.glDisableVertexAttribArray(0);
-            GL20.glDisableVertexAttribArray(1);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
-            GL30.glBindVertexArray(0);
-            
-            screenShader.stop();
-            
-            
+                GL11.glFinish();
+                GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
+            }
+
+            //  RENDER renderTexture TO SCREEN IN QUAD
+            {
+                //start and bind quad
+                screenShader.start();
+                GL30.glBindVertexArray(QUAD.getVaoID());
+                GL20.glEnableVertexAttribArray(0);
+                GL20.glEnableVertexAttribArray(1);
+                GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
+                screenShader.loadTransformationMatrix(Util.createSpriteTransformationMatrix(0, 0, 0, Globals.WIDTH, Globals.HEIGHT, 0));
+
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, Loader.getRenderTextureID());
+                GL11.glDrawElements(GL11.GL_TRIANGLES, QUAD.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+
+                //unbind
+                GL20.glDisableVertexAttribArray(0);
+                GL20.glDisableVertexAttribArray(1);
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+                GL30.glBindVertexArray(0);
+
+                screenShader.stop();
+            }
+
             renders++;
             DisplayManager.updateDisplay();
             float renderTime = (float) (Globals.getTime() - now);
             //System.out.println("render " + renders + " done in " + renderTime + "ms.  FPS: " + Math.round(1/(renderTime/1_000f)));
-            Display.setTitle("Squadron 4  -  TPS: " + Globals.TICKER.getTPS() + "  -  Sprites: " + Globals.renderObjects.size());
-            
+            Display.setTitle("OGLRTS  -  TPS: " + Globals.TICKER.getTPS() + "  -  RenderObjects: " + Globals.renderObjects.size());
+
         }
 
         Globals.TICKER.end();
-        
+
         spriteShader.cleanUp();
-        
+
         Loader.cleanUp();
         GL30.glDeleteFramebuffers(FBO);
         DisplayManager.closeDisplay();
     }
-    
+
     private void initOpenGL() {
         //init  - can't do it in constructor!
         try {
@@ -161,7 +163,7 @@ public class Renderer implements Runnable {
             Sys.alert("ERROR 3", "Unable to create Input Devices!");
             Logger.getLogger(Renderer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         if (!GLContext.getCapabilities().GL_EXT_framebuffer_object) {
             System.out.println("OpenGL render to FBO not supported on this platform, exiting!");
             System.exit(0);
@@ -175,7 +177,7 @@ public class Renderer implements Runnable {
 
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_NEAREST);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_NEAREST);
-        
+
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 
@@ -188,42 +190,48 @@ public class Renderer implements Runnable {
         int[] indices = {0, 1, 3, 3, 1, 2};
 
         QUAD = Loader.loadToVAO(verts, texs, indices);
-        
+
         //create FBO
         FBO = GL30.glGenFramebuffers();
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO);
-        
+
         GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, Loader.getRenderTextureID(), 0);
-        
+
 //        int error = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
 //        if(error != GL30.GL_FRAMEBUFFER_COMPLETE) {
 //            System.err.println("ERROR IN FRAME BUFFER, ERROR NUM = " + error);
 //        }
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
+        
+        
+        
+        
+        spriteShader = new BasicSpriteShader();
+        screenShader = new ScreenShader(aaOn);
     }
-    
+
     public void setAA(boolean aaOn) {
         this.aaOn = aaOn;
-        
+
     }
 
     public void clearRender() {
         GL11.glClearColor(0.0f, 0.0f, 0.0f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
-    
+
     public void clearFBO() {
         GL11.glClearColor(0.0f, 0.0f, 0.0f, 0);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
-    
+
     public void prepareSpriteRender() {
         GL30.glBindVertexArray(QUAD.getVaoID());
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
     }
-    
+
     public void endSpriteRender() {
         GL20.glDisableVertexAttribArray(0);
         GL20.glDisableVertexAttribArray(1);
@@ -234,24 +242,23 @@ public class Renderer implements Runnable {
     public void renderSprite(Sprite toRender, SpriteShader shader) {
         shader.start();
         Matrix4f tMatrix;
-        if (toRender instanceof Interpolatable) {
+        if (toRender instanceof Interpolatable && ((Interpolatable) toRender).interpolate()) {
+            //System.out.println("Interpolating " + toRender);
             Interpolatable i = (Interpolatable) toRender;
             tMatrix = Util.createSpriteTransformationMatrix(toRender.getX() + (i.getDeltaX() * interpolation), toRender.getY() + (i.getDeltaY() * interpolation), toRender.getRotation(), toRender.getWidth(), toRender.getHeight(), toRender.getPriority());
         } else {
             tMatrix = Util.createSpriteTransformationMatrix(toRender.getX(), toRender.getY(), toRender.getRotation(), toRender.getWidth(), toRender.getHeight(), toRender.getPriority());
         }
-        
+
         shader.loadTransformationMatrix(tMatrix);
 
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, toRender.getTex().getTextureID());
         GL11.glDrawElements(GL11.GL_TRIANGLES, QUAD.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
         shader.stop();
     }
-    
-    
-    
+
     private Vector2f vec2(float x, float y) {
-        return new Vector2f(x,y);
+        return new Vector2f(x, y);
     }
 
     public Area createAreaFromImage(String fileName, byte cutoff) {

@@ -4,6 +4,5 @@ public interface Interpolatable {
     
     public float getDeltaX();
     public float getDeltaY();
-    
-    
+    public boolean interpolate();
 }
