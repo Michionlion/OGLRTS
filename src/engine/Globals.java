@@ -31,11 +31,6 @@ public class Globals {
     
     
     
-    
-    
-    
-    
-    
     public static void add(Object o) {
         if(o instanceof Tickable) TICKER.add((Tickable) o);
         if(o instanceof GameObject) gameObjects.add((GameObject) o);
