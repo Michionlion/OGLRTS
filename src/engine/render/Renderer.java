@@ -2,6 +2,7 @@ package engine.render;
 
 import assets.Loader;
 import assets.game.objects.TestMover;
+import assets.game.particles.ParticleSystem;
 import assets.models.RawModel;
 import assets.shaders.BasicSpriteShader;
 import assets.shaders.ScreenShader;
@@ -61,19 +62,30 @@ public class Renderer implements Runnable {
     public Renderer(boolean aa) {
         aaOn = aa;
     }
-
-    @Override
-    public void run() {
-
-        initOpenGL();
-
-        
+    
+    private void spriteViewer() {
         String fileName = JOptionPane.showInputDialog("filename of sprite? (omit ending, must be .png)", "debug");
         int sx = Integer.parseInt(JOptionPane.showInputDialog("Width of Sprite? (in pixels of original image)", "64"));
         int sy = Integer.parseInt(JOptionPane.showInputDialog("Height of Sprite? (in pixels of original image)", "64"));
         Globals.add(new TestMover(Loader.getTexture(fileName), vec2(400,400), vec2(sx,sy)));
         
-        JOptionPane.showMessageDialog(null, "Use WASD to move sprite, and QE to rotate!");
+        JOptionPane.showMessageDialog(null, "Use WASD to move, and QE to rotate!");
+    }
+
+    @Override
+    public void run() {
+
+        initOpenGL();
+        
+        ParticleSystem p = new ParticleSystem(vec2(Globals.WIDTH/2f,Globals.HEIGHT/2f));
+        Globals.add(p);
+        
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Renderer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         //render loop
         while (!Display.isCloseRequested()) {
             now = Globals.getTime();
@@ -109,6 +121,10 @@ public class Renderer implements Runnable {
                 for (RenderObject toRender : Globals.renderObjects) {
                     if (toRender.isVisible() && toRender instanceof Sprite) {
                         renderSprite((Sprite) toRender, spriteShader);
+                    }
+                    
+                    if (toRender.isVisible() && toRender instanceof ParticleSystem) {
+                        ((ParticleSystem) toRender).render();
                     }
                 }
                 endSpriteRender();
@@ -146,7 +162,7 @@ public class Renderer implements Runnable {
             DisplayManager.updateDisplay();
             float renderTime = (float) (Globals.getTime() - now);
             //System.out.println("render " + renders + " done in " + renderTime + "ms.  FPS: " + Math.round(1/(renderTime/1_000f)));
-            Display.setTitle("OGLRTS  -  TPS: " + Globals.TICKER.getTPS() + "  -  RenderObjects: " + Globals.renderObjects.size());
+            Display.setTitle("OGLRTS  -  TPS: " + Globals.TICKER.getTPS() + "  -  RenderObjects: " + Globals.renderObjects.size() + "  -  Particles: " + p.getNumParticles());
 
         }
 

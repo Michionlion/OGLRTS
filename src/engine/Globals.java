@@ -1,7 +1,7 @@
 package engine;
 
 import engine.interfaces.RenderObject;
-import engine.interfaces.Tickable;
+import engine.interfaces.TickObject;
 import engine.render.Renderer;
 import java.io.File;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -12,7 +12,7 @@ import org.lwjgl.util.Rectangle;
 
 public class Globals {
 
-    public static String JARPATH = Globals.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    public static String JARPATH;
     
     
     public static final int WIDTH = 1080;
@@ -32,13 +32,13 @@ public class Globals {
     
     
     public static void add(Object o) {
-        if(o instanceof Tickable) TICKER.add((Tickable) o);
+        if(o instanceof TickObject) TICKER.add((TickObject) o);
         if(o instanceof GameObject) gameObjects.add((GameObject) o);
         if(o instanceof RenderObject) renderObjects.add((RenderObject) o);
     }
     
     public static void remove(Object o) {
-        if(o instanceof Tickable) if(TICKER.isTicking((Tickable) o)) TICKER.remove((Tickable) o);
+        if(o instanceof TickObject) if(TICKER.isTicking((TickObject) o)) TICKER.remove((TickObject) o);
         if(o instanceof GameObject) if(gameObjects.contains((GameObject)o)) gameObjects.remove((GameObject) o);
         if(o instanceof RenderObject) if(renderObjects.contains((RenderObject)o)) renderObjects.remove((RenderObject) o);
     }
@@ -72,16 +72,15 @@ public class Globals {
     }
 
     public static void main(String[] args) {
-        
-        if(JARPATH.endsWith(".jar")) {
+        String classpath = Globals.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        if(classpath.endsWith(".jar")) {
+            JARPATH = classpath;
             System.out.println("adding LWJGL from path: " + new File("natives").getAbsolutePath());
-            System.setProperty("org.lwjgl.librarypath", new File("res" + File.separator + "natives").getAbsolutePath());
         } else {
-            JARPATH = new File(new File(new File(JARPATH).getParent()).getParent()).getAbsolutePath();
-            System.out.println("adding LWJGL from path: " + JARPATH + File.separator + "res" + File.separator + "natives");
-            System.setProperty("org.lwjgl.librarypath", JARPATH + File.separator + "res" + File.separator + "natives");
+            JARPATH = new File(new File(new File(classpath).getParent()).getParent()).getAbsolutePath();
         }
         
+        System.setProperty("org.lwjgl.librarypath", JARPATH + File.separator + "res" + File.separator + "natives");
         System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
         
         RENDERER = new Renderer(true);

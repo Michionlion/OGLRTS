@@ -93,5 +93,5 @@ vec4 blur() {
         }
     }
 
-    return (sum/samples) + color/3.45f;
+    return (sum/samples) + color/4.75f;
 }

@@ -1,6 +1,6 @@
 package engine;
 
-import engine.interfaces.Tickable;
+import engine.interfaces.TickObject;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -20,7 +20,7 @@ public class Ticker implements Runnable {
     private int ticks = 0;
     private long totalTicks = 0;
 
-    private volatile CopyOnWriteArrayList<Tickable> entities = new CopyOnWriteArrayList<>();
+    private volatile CopyOnWriteArrayList<TickObject> entities = new CopyOnWriteArrayList<>();
 
     
     public Ticker(int tps) {
@@ -44,7 +44,7 @@ public class Ticker implements Runnable {
     public void logic() {
         long time = System.currentTimeMillis();
         if (!entities.isEmpty()) {
-            for (Tickable e : entities) {
+            for (TickObject e : entities) {
                 e.tick();
             }
         }
@@ -56,18 +56,18 @@ public class Ticker implements Runnable {
         scheduler.shutdownNow();
     }
 
-    public void add(Tickable e) {
+    public void add(TickObject e) {
         entities.add(e);
     }
 
-    public void remove(Tickable e) {
+    public void remove(TickObject e) {
         if (entities.contains(e)) {
             entities.remove(e);
         }
 
     }
 
-    public boolean isTicking(Tickable e) {
+    public boolean isTicking(TickObject e) {
         return entities.contains(e);
     }
 

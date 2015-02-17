@@ -1,11 +1,11 @@
 package assets.sprites;
 
 import engine.interfaces.Interpolatable;
-import engine.interfaces.Tickable;
+import engine.interfaces.TickObject;
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.opengl.Texture;
 
-public abstract class MovingSprite extends Sprite implements Tickable, Interpolatable {
+public abstract class MovingSprite extends Sprite implements TickObject, Interpolatable {
 
     protected Vector2f delta;
 

@@ -1,5 +1,5 @@
 package engine.interfaces;
 
-public interface Tickable {
+public interface TickObject {
     public void tick();
 }
