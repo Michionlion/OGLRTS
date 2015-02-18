@@ -2,6 +2,7 @@ package engine.render;
 
 import assets.Loader;
 import assets.game.objects.TestMover;
+import assets.game.objects.TinyShip;
 import assets.game.particles.ParticleSystem;
 import assets.models.RawModel;
 import assets.shaders.BasicSpriteShader;
@@ -62,13 +63,13 @@ public class Renderer implements Runnable {
     public Renderer(boolean aa) {
         aaOn = aa;
     }
-    
+
     private void spriteViewer() {
         String fileName = JOptionPane.showInputDialog("filename of sprite? (omit ending, must be .png)", "debug");
         int sx = Integer.parseInt(JOptionPane.showInputDialog("Width of Sprite? (in pixels of original image)", "64"));
         int sy = Integer.parseInt(JOptionPane.showInputDialog("Height of Sprite? (in pixels of original image)", "64"));
-        Globals.add(new TestMover(Loader.getTexture(fileName), vec2(400,400), vec2(sx,sy)));
-        
+        Globals.add(new TestMover(Loader.getTexture(fileName), vec2(400, 400), vec2(sx, sy)));
+
         JOptionPane.showMessageDialog(null, "Use WASD to move, and QE to rotate!");
     }
 
@@ -76,20 +77,21 @@ public class Renderer implements Runnable {
     public void run() {
 
         initOpenGL();
-        
-        ParticleSystem p = new ParticleSystem(vec2(Globals.WIDTH/2f,Globals.HEIGHT/2f));
-        Globals.add(p);
-        
+
+        for (int i = 0; i < 30; i++) {
+            Globals.add(new TinyShip(vec2(i * 30, 30), 0));
+        }
+
         try {
             Thread.sleep(20);
         } catch (InterruptedException ex) {
             Logger.getLogger(Renderer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         //render loop
         while (!Display.isCloseRequested()) {
             now = Globals.getTime();
-            
+
             if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
                 break;
             }
@@ -99,9 +101,7 @@ public class Renderer implements Runnable {
             if (Keyboard.isKeyDown(Keyboard.KEY_2)) {
                 aaOn = false;
             }
-            
-            
-            
+
             if (interpolate) {
                 interpolation = Math.min(1.0f, (float) ((now - Globals.TICKER.lastTickTime) / (TimeUnit.SECONDS.toMillis(1) / Globals.TICKER.targetTPS)));
             } else {
@@ -109,7 +109,7 @@ public class Renderer implements Runnable {
             }
 
             clearRender();
-            
+
             //RENDER TO renderTexture USING FBO
             {
 
@@ -122,7 +122,7 @@ public class Renderer implements Runnable {
                     if (toRender.isVisible() && toRender instanceof Sprite) {
                         renderSprite((Sprite) toRender, spriteShader);
                     }
-                    
+
                     if (toRender.isVisible() && toRender instanceof ParticleSystem) {
                         ((ParticleSystem) toRender).render();
                     }
@@ -142,7 +142,7 @@ public class Renderer implements Runnable {
                 GL20.glEnableVertexAttribArray(0);
                 GL20.glEnableVertexAttribArray(1);
                 GL13.glActiveTexture(GL13.GL_TEXTURE0);
-                
+
                 screenShader.setAA(aaOn);
                 screenShader.loadTransformationMatrix(Util.createSpriteTransformationMatrix(0, 0, 0, Globals.WIDTH, Globals.HEIGHT, 0));
 
@@ -162,7 +162,7 @@ public class Renderer implements Runnable {
             DisplayManager.updateDisplay();
             float renderTime = (float) (Globals.getTime() - now);
             //System.out.println("render " + renders + " done in " + renderTime + "ms.  FPS: " + Math.round(1/(renderTime/1_000f)));
-            Display.setTitle("OGLRTS  -  TPS: " + Globals.TICKER.getTPS() + "  -  RenderObjects: " + Globals.renderObjects.size() + "  -  Particles: " + p.getNumParticles());
+            Display.setTitle("OGLRTS  -  TPS: " + Globals.TICKER.getTPS() + "  -  RenderObjects: " + Globals.renderObjects.size() + "  -  Particles: " + ParticleSystem.totalNumParticles);
 
         }
 
@@ -233,10 +233,7 @@ public class Renderer implements Runnable {
 //            System.err.println("ERROR IN FRAME BUFFER, ERROR NUM = " + error);
 //        }
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
-        
-        
-        
-        
+
         spriteShader = new BasicSpriteShader();
         screenShader = new ScreenShader(aaOn);
     }

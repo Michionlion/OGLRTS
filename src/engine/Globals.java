@@ -7,8 +7,10 @@ import java.io.File;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.Rectangle;
+import org.lwjgl.util.vector.Vector2f;
 
 public class Globals {
 
@@ -69,6 +71,10 @@ public class Globals {
             }
         }
         tickThread.start();
+    }
+    
+    public static Vector2f getMousePos() {
+        return new Vector2f(Mouse.getX(), -(Mouse.getY() - HEIGHT));
     }
 
     public static void main(String[] args) {

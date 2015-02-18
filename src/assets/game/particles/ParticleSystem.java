@@ -10,6 +10,7 @@ import engine.util.Util;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
@@ -17,21 +18,77 @@ import org.newdawn.slick.opengl.Texture;
 
 public class ParticleSystem implements RenderObject, TickObject {
 
+    public static int totalNumParticles;
+    
+    
+    /**
+     * shader used to draw particles, must extend BasicSpriteShader
+     */
     BasicSpriteShader shader;
-
+    /**
+     * texture of the particles
+     */
     Texture particleTex;
-
+    /**
+     * the position of the emitter?
+     */
+    private Vector2f pos;
+    
+    /**
+     * what is the initial delta of the particles?
+     */
+    private Vector2f particleDelta = new Vector2f(0,0);
+    
+    /**
+     * rotation of the cone and/or circle?
+     */
+    /**
+     * rotation of the cone and/or circle?
+     */
+    float rotation = 2;
+    
+    /**
+     * radius of the exhaust cone in radians? (2*PI = full circle)
+     */
+    float coneRad = (float) (3 * (Math.PI/180f));
+    
+    
+    /**
+     * how many particles are added per render cycle?
+     */
+    int fillRate = 1;
+    
+    /**
+     * what size do the particles start at?
+     */
+    float startingSize = 2;
+    /**
+     * what is the initial speed of the particles?
+     */
+    float speed = 1.7f;
+    /**
+     * by how much are the above values (if applicable) allowed to deviate? (0-1)
+     */
+    float varience = 0.1f;
+    
     Random random = new Random();
     
     int lifetime;
     
-    private Vector2f pos;
-    private Vector2f particleDelta = new Vector2f(0, 0);
-    private float startingSize = 4;
-    private float speed = 1.7f;
-    private float varience = 0.1f;
-
     private final CopyOnWriteArrayList<Particle> particles = new CopyOnWriteArrayList<>();
+
+    public ParticleSystem(BasicSpriteShader shader, Texture particleTex, Vector2f pos, Vector2f particleDelta, float rotation, float coneRad, int fillRate, float startingSize, float speed, float varience) {
+        this.shader = shader;
+        this.particleTex = particleTex;
+        this.pos = pos;
+        this.particleDelta = particleDelta;
+        this.rotation = rotation;
+        this.coneRad = coneRad;
+        this.fillRate = fillRate;
+        this.startingSize = startingSize;
+        this.speed = speed;
+        this.varience = varience;
+    }
 
     public ParticleSystem(Vector2f pos, BasicSpriteShader shader) {
         this.pos = pos;
@@ -44,9 +101,20 @@ public class ParticleSystem implements RenderObject, TickObject {
         shader = new BasicSpriteShader();
         particleTex = Loader.getTexture("particles/sphereb");
     }
+    public ParticleSystem(Vector2f pos, BasicSpriteShader shader, Texture tex) {
+        this.pos = pos;
+        this.shader = shader;
+        particleTex = tex;
+    }
+
+    public ParticleSystem(Vector2f pos, Texture tex) {
+        this.pos = pos;
+        shader = new BasicSpriteShader();
+        particleTex = tex;
+    }
     
     public void createParticle() {
-        double pRot =  random.nextDouble()*(2f*Math.PI);
+        double pRot =  rotation - (coneRad/2f) + random.nextDouble()*coneRad;
         float pSpeed = speed + ((random.nextFloat()*(speed*varience*2)) - (speed*varience));
         
         float dX  = (float) (Math.cos(pRot)*pSpeed);
@@ -56,12 +124,9 @@ public class ParticleSystem implements RenderObject, TickObject {
 
     public void render() {
         
-        for(int b = 0; b < 30; b++) {
+        for(int b = 0; b < 1; b++) {
             createParticle();
         }
-        
-        
-        
         
         shader.start();
 
@@ -109,13 +174,98 @@ public class ParticleSystem implements RenderObject, TickObject {
 
     @Override
     public void tick() {
-        //lifetime++;
+        lifetime++;
         
-        //if(lifetime%30 == 0) {
-            //System.gc();
-        //}
+        
+    }
+    
+    // GETTERS AND SETTERS
+    public BasicSpriteShader getShader() {
+        return shader;
     }
 
+    public void setShader(BasicSpriteShader shader) {
+        this.shader = shader;
+    }
+
+    public Texture getParticleTex() {
+        return particleTex;
+    }
+
+    public void setParticleTex(Texture particleTex) {
+        this.particleTex = particleTex;
+    }
+    
+    public void setPos(float x, float y) {
+        pos.set(x, y);
+    }
+
+    public Vector2f getPos() {
+        return pos;
+    }
+
+    public void setPos(Vector2f pos) {
+        this.pos = pos;
+    }
+
+    public Vector2f getParticleDelta() {
+        return particleDelta;
+    }
+
+    public void setParticleDelta(Vector2f particleDelta) {
+        this.particleDelta = particleDelta;
+    }
+
+    public float getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(float rotation) {
+        this.rotation = rotation;
+    }
+
+    public float getConeRad() {
+        return coneRad;
+    }
+
+    public void setConeRad(float coneRad) {
+        this.coneRad = coneRad;
+    }
+
+    public int getFillRate() {
+        return fillRate;
+    }
+
+    public void setFillRate(int fillRate) {
+        this.fillRate = fillRate;
+    }
+
+    public float getStartingSize() {
+        return startingSize;
+    }
+
+    public void setStartingSize(float startingSize) {
+        this.startingSize = startingSize;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public float getVarience() {
+        return varience;
+    }
+
+    public void setVarience(float varience) {
+        this.varience = varience;
+    }
+    
+    // PARTICLE CLASS
+    
     class Particle {
 
         float x, y, dX, dY;
@@ -127,18 +277,24 @@ public class ParticleSystem implements RenderObject, TickObject {
             this.y = pos.getY();
             this.dX = dX;
             this.dY = dY;
+            totalNumParticles++;
         }
         protected void tick() {
             x += dX;
             y += dY;
-            dY+=0.008f;
-            //size *=(ticks+99f)/(ticks+100f);
-            if(size < 2) {
-                size *=(ticks+49f)/(ticks+50f);
+            size *=(ticks+19f)/(ticks+20f);
+            if(size < 1.3f) {
+                size *=(ticks+9f)/(ticks+10f);
             }
-            if(size <= 0.4f || bounds()) {
-               particles.remove(this);
+            if(size <= 0.25f || bounds()) {
+               destroy();
             }
+            ticks++;
+        }
+        
+        protected void destroy() {
+            particles.remove(this);
+            totalNumParticles--;
         }
         
         protected boolean bounds() {

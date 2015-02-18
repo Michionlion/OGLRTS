@@ -42,7 +42,7 @@ public class Util {
         return createTransformationMatrix(new Vector3f(x, y, z), new Vector3f(rx, ry, rz), new Vector3f(1, 1, 1));
     }
 
-    public static Matrix4f createSpriteTransformationMatrix(float x, float y, float rotation, float width, float height, float priority) {
+    public static Matrix4f createSpriteTransformationMatrix(float x, float y, double rotation, float width, float height, float priority) {
         Matrix4f matrix = new Matrix4f();
         matrix.setIdentity();
 //        Matrix4f.translate(new Vector3f(x+(width/2f), y+(height/2f), priority), matrix, matrix);
@@ -162,6 +162,25 @@ public class Util {
 
     public static int r(float num) {
         return Math.round(num);
+    }
+    
+    public static float distanceSq(Vector2f a, Vector2f b) {
+        float x = a.x - b.x;
+        float y = a.y - b.y;
+        
+        return x*x + y*y;
+    }
+    
+    public static float distance(Vector2f a, Vector2f b) {
+        float x = a.x - b.x;
+        float y = a.y - b.y;
+        
+        return (float) Math.sqrt(x*x + y*y);
+    }
+    
+    public static float angleToward(Vector2f from, Vector2f to) {
+        double a = Math.atan2((to.y - from.y), -(to.x - from.x));
+        return (float) Math.toDegrees(a);
     }
 
 }

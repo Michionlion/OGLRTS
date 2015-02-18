@@ -38,12 +38,37 @@ public abstract class Sprite implements RenderObject {
         checkRotation();
     }
     
+    public void turnToward(float x, float y) {
+        setRotation(angleToward(x,y));
+    }
+    
+    public void turnToward(Vector2f xy) {
+        turnToward(xy.x, xy.y);
+    }
+    
+    public float angleToward(Vector2f xy) {
+        return angleToward(xy.x, xy.y);
+    }
+    
+    public float angleToward(float x, float y) {
+        double a = Math.atan2((y - pos.y), -(x - pos.x));
+        return (float) Math.toDegrees(a);
+    }
+    
+    public void move(float distance) {
+        move(distance, rotation);
+    }
+    
+    public void move(float distance, float angle) {
+        translate((float)Math.cos(Math.toRadians(angle))*-distance, (float)Math.sin(Math.toRadians(angle))*distance);
+    }
+    
     public void translate(float x, float y) {
         pos.translate(x, y);
     }
     
     public void translate(Vector2f t) {
-        Vector2f.add(pos, t, pos);
+        translate(t.getX(), t.getY());
     }
 
     @Override
