@@ -20,6 +20,14 @@ public class ParticleSystem implements RenderObject, TickObject {
 
     public static int totalNumParticles;
     
+    /**
+     * draw but not create particles when enabled = false?
+     */
+    private boolean drawWhenDisabled = true;
+    /**
+     * emit particles and render them?
+     */
+    private boolean enabled = true;
     
     /**
      * shader used to draw particles, must extend BasicSpriteShader
@@ -123,8 +131,9 @@ public class ParticleSystem implements RenderObject, TickObject {
     }
 
     public void render() {
+        if(!enabled && !drawWhenDisabled) return;
         
-        for(int b = 0; b < 1; b++) {
+        if(enabled) for(int b = 0; b < 1; b++) {
             createParticle();
         }
         
@@ -180,6 +189,22 @@ public class ParticleSystem implements RenderObject, TickObject {
     }
     
     // GETTERS AND SETTERS
+    public boolean isDrawWhenDisabled() {
+        return drawWhenDisabled;
+    }
+
+    public void setDrawWhenDisabled(boolean drawWhenDisabled) {
+        this.drawWhenDisabled = drawWhenDisabled;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+    
     public BasicSpriteShader getShader() {
         return shader;
     }

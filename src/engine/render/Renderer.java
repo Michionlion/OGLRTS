@@ -2,7 +2,9 @@ package engine.render;
 
 import assets.Loader;
 import assets.game.objects.TestMover;
-import assets.game.objects.TinyShip;
+import assets.game.objects.units.TinyShip;
+import assets.game.objects.units.Unit;
+import assets.game.objects.units.MoveOrder;
 import assets.game.particles.ParticleSystem;
 import assets.models.RawModel;
 import assets.shaders.BasicSpriteShader;
@@ -31,6 +33,9 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 ;
 import org.lwjgl.opengl.GLContext;
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector2f;
+import org.newdawn.slick.opengl.Texture;import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.opengl.Texture;
@@ -78,16 +83,18 @@ public class Renderer implements Runnable {
 
         initOpenGL();
 
-        for (int i = 0; i < 30; i++) {
-            Globals.add(new TinyShip(vec2(i * 30, 30), 0));
-        }
+            for(int i = 0; i <= 60; i++ ) {
+                Unit.addUnit(new TinyShip(vec2((float)Math.random()*Globals.WIDTH, (float)Math.random()*Globals.HEIGHT), 90));
+            }
+
+        MoveOrder b = new MoveOrder(Unit.getAllUnits());
+        Globals.add(b);
 
         try {
             Thread.sleep(20);
         } catch (InterruptedException ex) {
             Logger.getLogger(Renderer.class.getName()).log(Level.SEVERE, null, ex);
         }
-
         //render loop
         while (!Display.isCloseRequested()) {
             now = Globals.getTime();

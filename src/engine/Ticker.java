@@ -4,7 +4,8 @@ import engine.interfaces.TickObject;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Ticker implements Runnable {
 
@@ -37,8 +38,25 @@ public class Ticker implements Runnable {
         running = true;
         lastTickTime = Globals.getTime();
         lastFPS = Globals.getTime();
-        //TimeUnit.SECONDS.toNanos(1)/60, TimeUnit.NANOSECONDS
-        scheduler.scheduleAtFixedRate(new Tick(), TimeUnit.MILLISECONDS.toNanos(30), TimeUnit.SECONDS.toNanos(1)/targetTPS, TimeUnit.NANOSECONDS);
+        
+        while(running) {
+            logic();
+            lastTickTime = Globals.getTime();
+            if (Globals.getTime() - lastFPS > 1000) {
+                tps = ticks;
+                ticks = 0;
+                lastFPS += 1000;
+            }
+            ticks++;
+            
+            // add sleeptime sensing
+            
+            try {
+                Thread.sleep(16);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Ticker.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
     public void logic() {
@@ -80,15 +98,7 @@ public class Ticker implements Runnable {
 
         @Override
         public void run() {
-            if(!running) return;
-            logic();
-            lastTickTime = Globals.getTime();
-            if (Globals.getTime() - lastFPS > 1000) {
-                tps = ticks;
-                ticks = 0;
-                lastFPS += 1000;
-            }
-            ticks++;
+            
         }
         
     }
