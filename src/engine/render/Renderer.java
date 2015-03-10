@@ -198,9 +198,6 @@ public class Renderer implements Runnable {
             Sys.alert("ERROR 3", "Unable to create Input Devices!");
             Logger.getLogger(Renderer.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        GL11.glBegin(GL11.GL_TRIANGLES);
-        GL11.glEnd();
 
         if (!GLContext.getCapabilities().GL_EXT_framebuffer_object) {
             System.out.println("OpenGL render to FBO not supported on this platform, exiting!");
