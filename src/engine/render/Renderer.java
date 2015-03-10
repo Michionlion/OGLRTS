@@ -75,7 +75,7 @@ public class Renderer implements Runnable {
 
     @Override
     public void run() {
-
+        
         initOpenGL();
 
         for(int i = 0; i <= 129; i++ ) {
@@ -198,6 +198,9 @@ public class Renderer implements Runnable {
             Sys.alert("ERROR 3", "Unable to create Input Devices!");
             Logger.getLogger(Renderer.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        GL11.glBegin(GL11.GL_TRIANGLES);
+        GL11.glEnd();
 
         if (!GLContext.getCapabilities().GL_EXT_framebuffer_object) {
             System.out.println("OpenGL render to FBO not supported on this platform, exiting!");
@@ -234,10 +237,11 @@ public class Renderer implements Runnable {
 
         GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, Loader.getRenderTextureID(), 0);
 
-//        int error = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
-//        if(error != GL30.GL_FRAMEBUFFER_COMPLETE) {
-//            System.err.println("ERROR IN FRAME BUFFER, ERROR NUM = " + error);
-//        }
+        int error = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
+//        System.out.println(error);
+        if(error != GL30.GL_FRAMEBUFFER_COMPLETE) {
+            System.err.println("ERROR IN FRAME BUFFER, ERROR NUM = " + error);
+        }
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
 
         spriteShader = new BasicSpriteShader();

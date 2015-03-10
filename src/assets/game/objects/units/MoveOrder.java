@@ -48,7 +48,6 @@ public class MoveOrder implements TickObject {
                 u.setTarget(new Vector2f(center.x + (float)Math.cos(rot)*spacing, center.y + (float)Math.sin(rot)*spacing));
                 
                 rot+= Math.acos(((2*spacing*spacing) - 64)/(2*spacing*spacing));
-                System.out.println(Math.acos(((2*spacing*spacing) - 144)/(2*spacing*spacing)));
             }
         }
         
