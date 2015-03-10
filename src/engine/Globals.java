@@ -1,10 +1,7 @@
 package engine;
 
-import engine.interfaces.RenderObject;
-import engine.interfaces.TickObject;
 import engine.render.Renderer;
 import java.io.File;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.input.Mouse;
@@ -14,6 +11,9 @@ import org.lwjgl.util.vector.Vector2f;
 
 public class Globals {
 
+    /**
+     * path in which the game is being executed
+     */
     public static String JARPATH;
     
     
@@ -22,31 +22,42 @@ public class Globals {
     
     public static final int FPS_CAP = 120;
 
-    public static Ticker TICKER;
+    
     public static Renderer RENDERER;
     
+    public static World CURRENT_WORLD;
     
-    public static CopyOnWriteArrayList<GameObject> gameObjects;
-    public static CopyOnWriteArrayList<RenderObject> renderObjects;
+    
+    
     
     public static Rectangle viewArea = new Rectangle(0, 0, WIDTH, HEIGHT);
     
     
     
     public static void add(Object o) {
-        if(o instanceof TickObject) TICKER.add((TickObject) o);
-        if(o instanceof GameObject) gameObjects.add((GameObject) o);
-        if(o instanceof RenderObject) renderObjects.add((RenderObject) o);
+        CURRENT_WORLD.add(o);
     }
     
     public static void remove(Object o) {
-        if(o instanceof TickObject) if(TICKER.isTicking((TickObject) o)) TICKER.remove((TickObject) o);
-        if(o instanceof GameObject) if(gameObjects.contains((GameObject)o)) gameObjects.remove((GameObject) o);
-        if(o instanceof RenderObject) if(renderObjects.contains((RenderObject)o)) renderObjects.remove((RenderObject) o);
+        CURRENT_WORLD.remove(o);
     }
     
     /**
-     * Get the time in milliseconds
+     * world must be new, not started yet.
+     * @param toChangeTo World to change CURRENT_WORLD to
+    **/
+    public static void changeWorld(World toChangeTo) {
+        CURRENT_WORLD.stop();
+        CURRENT_WORLD = toChangeTo;
+        CURRENT_WORLD.start();
+    }
+    
+    public static void stop() {
+        CURRENT_WORLD.stop();  // no need to set CURRENT_WORLD to null, already done in .stop()
+    }
+    
+    /**
+     * Get the time in milliseconds, with between 1 - 1,000,000 nanoseconds of accuracy.
      *
      * @return The system time in milliseconds
      */
@@ -56,10 +67,6 @@ public class Globals {
     
     private static void startGame() {
         Thread renderThread = new Thread(RENDERER, "renderThread");
-        Thread tickThread = new Thread(TICKER, "tickThread");
-        
-        gameObjects = new CopyOnWriteArrayList<>();
-        renderObjects = new CopyOnWriteArrayList<>();
         
         
         renderThread.start();
@@ -70,9 +77,15 @@ public class Globals {
                 Logger.getLogger(Globals.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        tickThread.start();
+        
+        CURRENT_WORLD = new World();
+        CURRENT_WORLD.start();
     }
     
+    /**
+     * MUST USE THIS METHOD TO ENSURE CORRECT COORDINATES
+     * @return the current mouse positions as a Vector2f
+     */
     public static Vector2f getMousePos() {
         return new Vector2f(Mouse.getX(), -(Mouse.getY() - HEIGHT));
     }
@@ -90,7 +103,6 @@ public class Globals {
         System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
         
         RENDERER = new Renderer(true);
-        TICKER = new Ticker(30);
         startGame();
     }
 }

@@ -10,12 +10,13 @@ import java.util.logging.Logger;
 public class Ticker implements Runnable {
 
     public float MILLIS_PER_FRAME;
-    
+
     ScheduledExecutorService scheduler;
-    
+
     public double lastTickTime = Globals.getTime();
     private double lastFPS = Globals.getTime();
     private boolean running;
+    private boolean paused = false;
     private int tps;
     public final int targetTPS;
     private int ticks = 0;
@@ -23,13 +24,12 @@ public class Ticker implements Runnable {
 
     private volatile CopyOnWriteArrayList<TickObject> entities = new CopyOnWriteArrayList<>();
 
-    
     public Ticker(int tps) {
         MILLIS_PER_FRAME = 1_000 / tps;
         targetTPS = tps;
-        
+
         this.tps = -1;
-        
+
         scheduler = Executors.newSingleThreadScheduledExecutor();
     }
 
@@ -38,19 +38,21 @@ public class Ticker implements Runnable {
         running = true;
         lastTickTime = Globals.getTime();
         lastFPS = Globals.getTime();
-        
-        while(running) {
-            logic();
-            lastTickTime = Globals.getTime();
-            if (Globals.getTime() - lastFPS > 1000) {
-                tps = ticks;
-                ticks = 0;
-                lastFPS += 1000;
+
+        while (running) {
+            if (!paused) {
+                logic();
+                lastTickTime = Globals.getTime();
+                if (Globals.getTime() - lastFPS > 1000) {
+                    tps = ticks;
+                    ticks = 0;
+                    lastFPS += 1000;
+                }
+                ticks++;
+
+                // add sleeptime sensing
             }
-            ticks++;
-            
-            // add sleeptime sensing
-            
+
             try {
                 Thread.sleep(16);
             } catch (InterruptedException ex) {
@@ -85,6 +87,14 @@ public class Ticker implements Runnable {
 
     }
 
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
+
     public boolean isTicking(TickObject e) {
         return entities.contains(e);
     }
@@ -92,14 +102,13 @@ public class Ticker implements Runnable {
     public int getTPS() {
         return tps;
     }
-    
-    
+
     private class Tick implements Runnable {
 
         @Override
         public void run() {
-            
+
         }
-        
+
     }
 }

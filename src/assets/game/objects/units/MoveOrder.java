@@ -8,6 +8,11 @@ import java.util.HashSet;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.util.vector.Vector2f;
 
+/**
+ * temporary method to create units and move them.  Should eventually be replaced with Unit.executeMoveOrder(MoveOrder mo, Collection<Unit> units),
+ * where MoveOrder is just a class that will tell the units HOW to set their destinations, and/or how to move (speed, avoidance, so on).
+ * @author Saejin
+ */
 public class MoveOrder implements TickObject {
     
     protected HashSet<Unit> units;

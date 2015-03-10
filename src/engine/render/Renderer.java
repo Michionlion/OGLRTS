@@ -31,11 +31,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
-;
 import org.lwjgl.opengl.GLContext;
-import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector2f;
-import org.newdawn.slick.opengl.Texture;import org.lwjgl.opengl.GLContext;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
 import org.newdawn.slick.opengl.Texture;
@@ -48,12 +44,11 @@ public class Renderer implements Runnable {
 
     public static RawModel QUAD;
 
-    public int FBO;
+    public int FBO_AA;
     public RawModel boundModel;
     public Texture boundTexture;
 
     private double now = System.nanoTime();
-    Area aaa = null;
     private long renders = 0;
     private boolean aaOn;
     protected boolean interpolate = true;
@@ -75,7 +70,7 @@ public class Renderer implements Runnable {
         int sy = Integer.parseInt(JOptionPane.showInputDialog("Height of Sprite? (in pixels of original image)", "64"));
         Globals.add(new TestMover(Loader.getTexture(fileName), vec2(400, 400), vec2(sx, sy)));
 
-        JOptionPane.showMessageDialog(null, "Use WASD to move, and QE to rotate!");
+        JOptionPane.showMessageDialog(null, "Use WASD to move, and QE to rotate.  (May not work depending on what version is running)");
     }
 
     @Override
@@ -83,13 +78,15 @@ public class Renderer implements Runnable {
 
         initOpenGL();
 
-            for(int i = 0; i <= 60; i++ ) {
-                Unit.addUnit(new TinyShip(vec2((float)Math.random()*Globals.WIDTH, (float)Math.random()*Globals.HEIGHT), 90));
-            }
+        for(int i = 0; i <= 129; i++ ) {
+            Unit.addUnit(new TinyShip(vec2((float)Math.random()*Globals.WIDTH, (float)Math.random()*Globals.HEIGHT), 90));
+        }
 
         MoveOrder b = new MoveOrder(Unit.getAllUnits());
         Globals.add(b);
 
+        
+        
         try {
             Thread.sleep(20);
         } catch (InterruptedException ex) {
@@ -110,22 +107,22 @@ public class Renderer implements Runnable {
             }
 
             if (interpolate) {
-                interpolation = Math.min(1.0f, (float) ((now - Globals.TICKER.lastTickTime) / (TimeUnit.SECONDS.toMillis(1) / Globals.TICKER.targetTPS)));
+                interpolation = Math.min(1.0f, (float) ((now - Globals.CURRENT_WORLD.ticker.lastTickTime) / (TimeUnit.SECONDS.toMillis(1) / Globals.CURRENT_WORLD.ticker.targetTPS)));
             } else {
                 interpolation = 1;
             }
 
-            clearRender();
+            clearBL();
 
-            //RENDER TO renderTexture USING FBO
+            //RENDER TO renderTexture USING FBO_AA
             {
 
-                GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO);
-                clearFBO();
+                GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO_AA);
+                clearCL();
 
                 // --SPRITE RENDER--
                 prepareSpriteRender();
-                for (RenderObject toRender : Globals.renderObjects) {
+                for (RenderObject toRender : Globals.CURRENT_WORLD.renderObjects) {
                     if (toRender.isVisible() && toRender instanceof Sprite) {
                         renderSprite((Sprite) toRender, spriteShader);
                     }
@@ -169,16 +166,16 @@ public class Renderer implements Runnable {
             DisplayManager.updateDisplay();
             float renderTime = (float) (Globals.getTime() - now);
             //System.out.println("render " + renders + " done in " + renderTime + "ms.  FPS: " + Math.round(1/(renderTime/1_000f)));
-            Display.setTitle("OGLRTS  -  TPS: " + Globals.TICKER.getTPS() + "  -  RenderObjects: " + Globals.renderObjects.size() + "  -  Particles: " + ParticleSystem.totalNumParticles);
+            Display.setTitle("OGLRTS  -  TPS: " + Globals.CURRENT_WORLD.ticker.getTPS() + "  -  RenderObjects: " + Globals.CURRENT_WORLD.renderObjects.size() + "  -  Particles: " + ParticleSystem.totalNumParticles);
 
         }
 
-        Globals.TICKER.end();
+        Globals.stop();
 
         spriteShader.cleanUp();
 
         Loader.cleanUp();
-        GL30.glDeleteFramebuffers(FBO);
+        GL30.glDeleteFramebuffers(FBO_AA);
         DisplayManager.closeDisplay();
     }
 
@@ -207,6 +204,7 @@ public class Renderer implements Runnable {
             System.exit(0);
         }
 
+        //set OpenGL constants
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_BACK);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -219,6 +217,7 @@ public class Renderer implements Runnable {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
 
+        //set up QUAD model
         float[] verts
                 = {0.5f, 0.5f, 0f, //v1
                     0.5f, -0.5f, 0f, //v2
@@ -229,9 +228,9 @@ public class Renderer implements Runnable {
 
         QUAD = Loader.loadToVAO(verts, texs, indices);
 
-        //create FBO
-        FBO = GL30.glGenFramebuffers();
-        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO);
+        //create FBO_AA
+        FBO_AA = GL30.glGenFramebuffers();
+        GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO_AA);
 
         GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, Loader.getRenderTextureID(), 0);
 
@@ -250,12 +249,12 @@ public class Renderer implements Runnable {
 
     }
 
-    public void clearRender() {
+    public void clearBL() {
         GL11.glClearColor(0.0f, 0.0f, 0.0f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
-    public void clearFBO() {
+    public void clearCL() {
         GL11.glClearColor(0.0f, 0.0f, 0.0f, 0);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
