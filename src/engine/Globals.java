@@ -87,7 +87,6 @@ public class Globals {
      * @return the current mouse positions as a Vector2f
      */
     public static Vector2f getMousePos() {
-        System.out.println(Mouse.getX() + ",  " +  -(Mouse.getY() - HEIGHT));
         return new Vector2f(Mouse.getX(), -(Mouse.getY() - HEIGHT));
     }
 
@@ -99,7 +98,6 @@ public class Globals {
         } else {
             JARPATH = new File(new File(new File(classpath).getParent()).getParent()).getAbsolutePath();
         }
-        
         System.setProperty("org.lwjgl.librarypath", JARPATH + File.separator + "res" + File.separator + "natives");
         System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
         
