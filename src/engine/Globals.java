@@ -87,10 +87,7 @@ public class Globals {
      * @return the current mouse positions as a Vector2f
      */
     public static Vector2f getMousePos() {
-        int mx = Mouse.getX();
-        int my = Mouse.getY();
-        my = HEIGHT - my;
-        return new Vector2f(mx, my);
+        return new Vector2f(Mouse.getX(), -(Mouse.getY() - HEIGHT));
     }
 
     public static void main(String[] args) {
