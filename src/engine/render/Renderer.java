@@ -78,7 +78,7 @@ public class Renderer implements Runnable {
         
         initOpenGL();
 
-        for(int i = 0; i <= 129; i++ ) {
+        for(int i = 0; i <= 100; i++ ) {
             Unit.addUnit(new TinyShip(vec2((float)Math.random()*Globals.WIDTH, (float)Math.random()*Globals.HEIGHT), 90));
         }
 

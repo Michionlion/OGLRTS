@@ -101,7 +101,7 @@ public class Globals {
         } else {
             JARPATH = new File(new File(new File(classpath).getParent()).getParent()).getAbsolutePath();
         }
-        
+        System.out.println(JARPATH);
         System.setProperty("org.lwjgl.librarypath", JARPATH + File.separator + "res" + File.separator + "natives");
         System.setProperty("org.lwjgl.opengl.Window.undecorated", "false");
         
