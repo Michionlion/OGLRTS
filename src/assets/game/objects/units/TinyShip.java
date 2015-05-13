@@ -1,6 +1,6 @@
 package assets.game.objects.units;
 
-import assets.Loader;
+import assets.ResourceManager;
 import assets.game.particles.ParticleSystem;
 import assets.shaders.BasicSpriteShader;
 import engine.Globals;
@@ -13,8 +13,8 @@ public class TinyShip extends Unit {
     
     
     public TinyShip(Vector2f pos, float rotation) {
-        super(Loader.getTexture("tinyShip"), pos, rotation, new Vector2f(0,0), new Vector2f(8,8));
-        engine = new ParticleSystem(new BasicSpriteShader(), Loader.getTexture("particles/sphereb"), pos, new Vector2f(0,0), rotation, 4 * ((float)Math.PI/108f), 1, 2, 0.07f, 0.1f);
+        super(ResourceManager.getTexture("tinyShip"), pos, rotation, new Vector2f(0,0), new Vector2f(8,8));
+        engine = new ParticleSystem(new BasicSpriteShader(), ResourceManager.getTexture("particles/sphereb"), pos, new Vector2f(0,0), rotation, 4 * ((float)Math.PI/108f), 1, 2, 0.07f, 0.1f);
         Globals.add(engine);
     }
 

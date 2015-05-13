@@ -1,6 +1,6 @@
 package assets.game.objects;
 
-import assets.Loader;
+import assets.ResourceManager;
 import assets.sprites.MovingSprite;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;

@@ -1,6 +1,6 @@
 package assets.game.particles;
 
-import assets.Loader;
+import assets.ResourceManager;
 import assets.shaders.BasicSpriteShader;
 import engine.Globals;
 import engine.interfaces.RenderObject;
@@ -99,13 +99,13 @@ public class ParticleSystem implements RenderObject, TickObject {
     public ParticleSystem(Vector2f pos, BasicSpriteShader shader) {
         this.pos = pos;
         this.shader = shader;
-        particleTex = Loader.getTexture("particles/sphereb");
+        particleTex = ResourceManager.getTexture("particles/sphereb");
     }
 
     public ParticleSystem(Vector2f pos) {
         this.pos = pos;
         shader = new BasicSpriteShader();
-        particleTex = Loader.getTexture("particles/sphereb");
+        particleTex = ResourceManager.getTexture("particles/sphereb");
     }
     public ParticleSystem(Vector2f pos, BasicSpriteShader shader, Texture tex) {
         this.pos = pos;

@@ -1,6 +1,6 @@
 package engine.render;
 
-import assets.Loader;
+import assets.ResourceManager;
 import assets.game.objects.TestMover;
 import assets.game.objects.units.TinyShip;
 import assets.game.objects.units.Unit;
@@ -68,7 +68,7 @@ public class Renderer implements Runnable {
         String fileName = JOptionPane.showInputDialog("filename of sprite? (omit ending, must be .png)", "debug");
         int sx = Integer.parseInt(JOptionPane.showInputDialog("Width of Sprite? (in pixels of original image)", "64"));
         int sy = Integer.parseInt(JOptionPane.showInputDialog("Height of Sprite? (in pixels of original image)", "64"));
-        Globals.add(new TestMover(Loader.getTexture(fileName), vec2(400, 400), vec2(sx, sy)));
+        Globals.add(new TestMover(ResourceManager.getTexture(fileName), vec2(400, 400), vec2(sx, sy)));
 
         JOptionPane.showMessageDialog(null, "Use WASD to move, and QE to rotate.  (May not work depending on what version is running)");
     }
@@ -77,7 +77,7 @@ public class Renderer implements Runnable {
     public void run() {
         
         initOpenGL();
-
+        // temp code
         for(int i = 0; i <= 100; i++ ) {
             Unit.addUnit(new TinyShip(vec2((float)Math.random()*Globals.WIDTH, (float)Math.random()*Globals.HEIGHT), 90));
         }
@@ -86,16 +86,20 @@ public class Renderer implements Runnable {
         Globals.add(b);
 
         
-        
+           
         try {
             Thread.sleep(20);
         } catch (InterruptedException ex) {
             Logger.getLogger(Renderer.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        // end temp code
+        
         //render loop
         while (!Display.isCloseRequested()) {
             now = Globals.getTime();
 
+            // temp aa toggle
             if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
                 break;
             }
@@ -105,20 +109,26 @@ public class Renderer implements Runnable {
             if (Keyboard.isKeyDown(Keyboard.KEY_2)) {
                 aaOn = false;
             }
+            
+            // end temp aa tog
 
+            
+            // interpolate should always be true
             if (interpolate) {
                 interpolation = Math.min(1.0f, (float) ((now - Globals.CURRENT_WORLD.ticker.lastTickTime) / (TimeUnit.SECONDS.toMillis(1) / Globals.CURRENT_WORLD.ticker.targetTPS)));
             } else {
                 interpolation = 1;
             }
+            
+            
 
-            clearBL();
+            clearWithBL();
 
-            //RENDER TO renderTexture USING FBO_AA
+            //RENDER TO AAtex USING FBO_AA
             {
 
                 GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO_AA);
-                clearCL();
+                clearWithCL();
 
                 // --SPRITE RENDER--
                 prepareSpriteRender();
@@ -138,7 +148,7 @@ public class Renderer implements Runnable {
                 GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
             }
 
-            //  RENDER renderTexture TO SCREEN IN QUAD
+            //  RENDER AAtex TO SCREEN IN QUAD
             {
                 //start and bind quad
                 screenShader.start();
@@ -150,7 +160,7 @@ public class Renderer implements Runnable {
                 screenShader.setAA(aaOn);
                 screenShader.loadTransformationMatrix(Util.createSpriteTransformationMatrix(0, 0, 0, Globals.WIDTH, Globals.HEIGHT, 0));
 
-                GL11.glBindTexture(GL11.GL_TEXTURE_2D, Loader.getRenderTextureID());
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, ResourceManager.getRenderTextureID("AA"));
                 GL11.glDrawElements(GL11.GL_TRIANGLES, QUAD.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
 
                 //unbind
@@ -174,7 +184,7 @@ public class Renderer implements Runnable {
 
         spriteShader.cleanUp();
 
-        Loader.cleanUp();
+        ResourceManager.cleanUp();
         GL30.glDeleteFramebuffers(FBO_AA);
         DisplayManager.closeDisplay();
     }
@@ -227,13 +237,13 @@ public class Renderer implements Runnable {
         float[] texs = {0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f};
         int[] indices = {0, 1, 3, 3, 1, 2};
 
-        QUAD = Loader.loadToVAO(verts, texs, indices);
+        QUAD = ResourceManager.loadToVAO(verts, texs, indices);
 
         //create FBO_AA
         FBO_AA = GL30.glGenFramebuffers();
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, FBO_AA);
-
-        GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, Loader.getRenderTextureID(), 0);
+        ResourceManager.createRenderLayer("AA");
+        GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, ResourceManager.getRenderTextureID("AA"), 0);
 
         int error = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
 //        System.out.println(error);
@@ -246,17 +256,12 @@ public class Renderer implements Runnable {
         screenShader = new ScreenShader(aaOn);
     }
 
-    public void setAA(boolean aaOn) {
-        this.aaOn = aaOn;
-
-    }
-
-    public void clearBL() {
+    public void clearWithBL() {
         GL11.glClearColor(0.0f, 0.0f, 0.0f, 1);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
 
-    public void clearCL() {
+    public void clearWithCL() {
         GL11.glClearColor(0.0f, 0.0f, 0.0f, 0);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
     }
@@ -299,7 +304,7 @@ public class Renderer implements Runnable {
 
     public Area createAreaFromImage(String fileName, byte cutoff) {
 
-        Texture tex = Loader.getTexture(fileName);
+        Texture tex = ResourceManager.getTexture(fileName);
 
         byte[] data = tex.getTextureData();
 
@@ -335,7 +340,7 @@ public class Renderer implements Runnable {
 
     public Area createDetailedAreaFromImage(String fileName, byte cutoff) {
 
-        Texture tex = Loader.getTexture(fileName);
+        Texture tex = ResourceManager.getTexture(fileName);
 
         byte[] data = tex.getTextureData();
 

@@ -2,6 +2,7 @@ package assets;
 
 import assets.models.RawModel;
 import engine.Globals;
+import engine.exceptions.LayerNotFoundError;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -19,12 +20,12 @@ import org.lwjgl.opengl.GL30;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
 
-public class Loader {
+public class ResourceManager {
     
     private static List<Integer> vaos = new ArrayList<>();
     private static List<Integer> vbos = new ArrayList<>();
     private static HashMap<String, Texture> textures = new HashMap<>();
-    private static int renderTexture = -1;
+    private static HashMap<String, Integer> renderLayers = new HashMap<>();
     
     public static RawModel loadToVAO(float[] positions, float[] textureCoords, int[] indices) {
         int vaoID = createVAO();
@@ -45,10 +46,11 @@ public class Loader {
         else return loadTexture(fileName).getTextureID();
     }
     
-    public static int getRenderTextureID() {
-        if(renderTexture < 0) {
+    public static int getRenderTextureID(String renderLayerName) throws LayerNotFoundError {
+        if(renderLayers.containsKey(renderLayerName) && renderLayers.get(renderLayerName) < 0) {
             
-            renderTexture = GL11.glGenTextures();
+            
+            int renderTexture = GL11.glGenTextures();
 //            IntBuffer textureHandle = BufferUtils.createIntBuffer(1);
 //            GL11.glGenTextures(textureHandle);
 //            renderTexture = textureHandle.get(0);
@@ -59,11 +61,23 @@ public class Loader {
             GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, Globals.WIDTH, Globals.HEIGHT, 0, GL11.GL_RGBA, GL11.GL_FLOAT, (java.nio.ByteBuffer) null);
        //        glTexImage2D(     GL_TEXTURE_2D, 0,      GL_RGBA8,           512,            512, 0,      GL_RGBA,        GL_INT, (java.nio.ByteBuffer) null);
             
-            
+            renderLayers.remove(renderLayerName);
+            renderLayers.put(renderLayerName, renderTexture);
             return renderTexture;
+        } else if (renderLayers.containsKey(renderLayerName)) {
+            return renderLayers.get(renderLayerName);
         } else {
-            return renderTexture;
+            throw new LayerNotFoundError(renderLayerName);
         }
+    }
+    /**
+     * 
+     * @param renderLayerName
+     * @return the Open
+    **/
+    public static int createRenderLayer(String renderLayerName) {
+        renderLayers.put(renderLayerName, -1);
+        return getRenderTextureID(renderLayerName);
     }
     
     private static Texture loadTexture(String fileName) {
@@ -73,7 +87,7 @@ public class Loader {
             System.out.println("loaded " + fileName);
             tex = TextureLoader.getTexture("PNG", new FileInputStream("res/art/"+fileName+".png"));
         } catch (IOException ex) {
-            Logger.getLogger(Loader.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ResourceManager.class.getName()).log(Level.SEVERE, null, ex);
         }
         if(tex == null) {
             System.err.println("unable to load texture: " + fileName);
@@ -142,6 +156,9 @@ public class Loader {
         }
         textures.clear();
         
-        GL11.glDeleteTextures(renderTexture);
+        for(int layer : renderLayers.values()) {
+            GL11.glDeleteTextures(layer);
+        }
+        renderLayers.clear();
     }
 }
